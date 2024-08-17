@@ -116,8 +116,9 @@ function handleSendMoney(amount, recipientUsername, senderUsername, sendResponse
   });
 }
 
+import { NOTION_API_KEY } from './config.js';
+
 function handleReadNotion(sendResponse) {
-  const NOTION_API_KEY = 'secret_t1NNFB8Qvq08qJMHoAm3lJmskxHZ9fXqi350jOyWKF';
   const NOTION_DATABASE_ID = 'ec7c4890730248ff8181b40c95c661d1';
 
   fetch(`https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`, {
