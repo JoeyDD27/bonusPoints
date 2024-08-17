@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
   loadUserData();
   document.getElementById('checkInButton').addEventListener('click', checkIn);
   document.getElementById('sendMoneyButton').addEventListener('click', sendMoney);
+  document.getElementById('readNotionButton').addEventListener('click', readNotionData);
 });
 
 function loadUserData() {
@@ -74,4 +75,14 @@ function sendMoney() {
       }
     }
   );
+}
+
+function readNotionData() {
+  chrome.runtime.sendMessage({ action: "readNotion" }, function (response) {
+    if (response.success) {
+      alert('Notion data read successfully: ' + JSON.stringify(response.data));
+    } else {
+      alert('Failed to read Notion data: ' + response.message);
+    }
+  });
 }

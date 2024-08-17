@@ -39,6 +39,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   } else if (request.action === "sendMoney") {
     handleSendMoney(request.amount, request.recipientUsername, request.senderUsername, sendResponse);
     return true; // Indicates we will respond asynchronously
+  } else if (request.action === "readNotion") {
+    handleReadNotion(sendResponse);
+    return true; // Indicates we will respond asynchronously
   }
 });
 
@@ -111,4 +114,32 @@ function handleSendMoney(amount, recipientUsername, senderUsername, sendResponse
       }
     });
   });
+}
+
+function handleReadNotion(sendResponse) {
+  const NOTION_API_KEY = 'secret_t1NNFB8Qvq08qJMHoAm3lJmskxHZ9fXqi350jOyWKF';
+  const NOTION_DATABASE_ID = 'ec7c4890730248ff8181b40c95c661d1';
+
+  fetch(`https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${NOTION_API_KEY}`,
+      'Notion-Version': '2021-08-16',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({})
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      sendResponse({ success: true, data: data.results });
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      sendResponse({ success: false, message: 'Failed to fetch Notion data: ' + error.message });
+    });
 }
