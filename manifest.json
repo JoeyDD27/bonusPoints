@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Money Board",
+  "version": "1.0",
+  "description": "Virtual currency system: Daily check-in for money, trade with others",
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon48.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
