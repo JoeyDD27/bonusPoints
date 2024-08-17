@@ -39,6 +39,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   } else if (request.action === "sendMoney") {
     handleSendMoney(request.amount, request.recipientUsername, request.senderUsername, sendResponse);
     return true; // Indicates we will respond asynchronously
+  } else if (request.action === "fetchNotionDatabase") {
+    fetchNotionDatabase(request.databaseId, sendResponse);
+    return true; // Keep the message channel open for asynchronous response
   }
 });
 
@@ -110,5 +113,26 @@ function handleSendMoney(amount, recipientUsername, senderUsername, sendResponse
         });
       }
     });
+  });
+}
+
+import { NOTION_API_KEY } from './apiKey.js';
+
+function fetchNotionDatabase(databaseId, sendResponse) {
+  fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${NOTION_API_KEY}`,
+      'Notion-Version': '2021-08-16',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({})
+  })
+  .then(response => response.json())
+  .then(data => {
+    sendResponse({ data: data });
+  })
+  .catch(error => {
+    sendResponse({ error: error.message });
   });
 }

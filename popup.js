@@ -1,12 +1,19 @@
+import { fetchNotionDatabase } from './notion-api.js';
+
 let balance = 0;
 let lastCheckIn = null;
 let currentUsername = '';
 
 document.addEventListener('DOMContentLoaded', function () {
   loadUserData();
+  setupEventListeners();
+});
+
+function setupEventListeners() {
   document.getElementById('checkInButton').addEventListener('click', checkIn);
   document.getElementById('sendMoneyButton').addEventListener('click', sendMoney);
-});
+  document.getElementById('fetchNotionDataButton').addEventListener('click', loadNotionData);
+}
 
 function loadUserData() {
   chrome.storage.sync.get(['balance', 'lastCheckIn', 'currentUser'], function (result) {
@@ -74,4 +81,50 @@ function sendMoney() {
       }
     }
   );
+}
+
+async function loadNotionData() {
+  try {
+    const data = await fetchNotionDatabase();
+    displayNotionData(data);
+  } catch (error) {
+    console.error('Error fetching Notion data:', error);
+    document.getElementById('notionData').textContent = 'Failed to load Notion data';
+  }
+}
+
+function displayNotionData(data) {
+  const notionDataElement = document.getElementById('notionData');
+  notionDataElement.innerHTML = '';
+
+  if (data.results && data.results.length > 0) {
+    const table = document.createElement('table');
+    table.style.borderCollapse = 'collapse';
+    table.style.width = '100%';
+
+    // Create table header
+    const headerRow = table.insertRow();
+    Object.keys(data.results[0].properties).forEach(key => {
+      const th = document.createElement('th');
+      th.textContent = key;
+      th.style.border = '1px solid black';
+      th.style.padding = '5px';
+      headerRow.appendChild(th);
+    });
+
+    // Create table rows
+    data.results.forEach(item => {
+      const row = table.insertRow();
+      Object.values(item.properties).forEach(property => {
+        const cell = row.insertCell();
+        cell.textContent = JSON.stringify(property);
+        cell.style.border = '1px solid black';
+        cell.style.padding = '5px';
+      });
+    });
+
+    notionDataElement.appendChild(table);
+  } else {
+    notionDataElement.textContent = 'No data found in the Notion database.';
+  }
 }
