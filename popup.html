@@ -2,22 +2,14 @@
 <html>
 
 <head>
-  <title>Money Board</title>
+  <title>Notion Data Reader</title>
   <link rel="stylesheet" type="text/css" href="popup.css">
 </head>
 
 <body>
-  <h1>Money Board</h1>
-  <p>Username: <span id="username">Loading...</span></p>
-  <p>Current Balance: $<span id="balance">0.00</span></p>
-  <button id="checkInButton">Daily Check-in</button>
-  <div class="transaction-section">
-    <h2>Send Money</h2>
-    <input id="amount" type="number" placeholder="Amount" />
-    <input id="recipient" type="text" placeholder="Recipient Username" />
-    <button id="sendMoneyButton">Send Money</button>
-  </div>
+  <h1>Notion Data Reader</h1>
   <button id="readNotionButton">Read Notion Data</button>
+  <div id="notionData"></div>
   <script src="popup.js"></script>
 </body>
 

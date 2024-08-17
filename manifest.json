@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "bonusPoints",
+  "name": "Notion Data Reader",
   "version": "1.0",
-  "description": "Virtual currency system: Daily check-in for money, trade with others",
+  "description": "Reads data from a Notion database",
   "permissions": [
     "storage"
   ],
@@ -10,10 +10,7 @@
     "https://api.notion.com/"
   ],
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "48": "icon48.png"
-    }
+    "default_popup": "popup.html"
   },
   "background": {
     "service_worker": "background.js",
