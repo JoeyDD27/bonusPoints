@@ -1,6 +1,6 @@
 // background.js
 import { NOTION_API_SECRET } from './apikey.js';
-import { DATABASE_ID_BASE, DATABASE_ID_ACTIVATIONCODE } from './config.js';
+import { DATABASE_ID_BASE, DATABASE_ID_ACTIVATIONCODE, DATABASE_ID_TRANSFER } from './config.js';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkActivationCode") {
@@ -505,6 +505,7 @@ async function changeNickname(uid, newNickname) {
 
 async function transferPoints(senderUid, recipientUsername, amount) {
   try {
+    console.log("Starting transfer process...");
     // Get sender's information
     const senderResponse = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_BASE}/query`, {
       method: 'POST',
@@ -539,6 +540,8 @@ async function transferPoints(senderUid, recipientUsername, amount) {
       return { success: false, error: "Insufficient balance" };
     }
 
+    console.log("Sender found and has sufficient balance");
+
     // Get recipient's information
     const recipientResponse = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_BASE}/query`, {
       method: 'POST',
@@ -568,6 +571,11 @@ async function transferPoints(senderUid, recipientUsername, amount) {
 
     const recipient = recipientData.results[0];
 
+    console.log("Recipient found");
+
+    const senderNewBalance = senderBalance - amount;
+    const receiverNewBalance = recipient.properties.balance.number + amount;
+
     // Update sender's balance
     await fetch(`https://api.notion.com/v1/pages/${sender.id}`, {
       method: 'PATCH',
@@ -579,11 +587,13 @@ async function transferPoints(senderUid, recipientUsername, amount) {
       body: JSON.stringify({
         properties: {
           balance: {
-            number: senderBalance - amount
+            number: senderNewBalance
           }
         }
       })
     });
+
+    console.log("Sender's balance updated");
 
     // Update recipient's balance
     await fetch(`https://api.notion.com/v1/pages/${recipient.id}`, {
@@ -596,11 +606,83 @@ async function transferPoints(senderUid, recipientUsername, amount) {
       body: JSON.stringify({
         properties: {
           balance: {
-            number: recipient.properties.balance.number + amount
+            number: receiverNewBalance
           }
         }
       })
     });
+
+    console.log("Recipient's balance updated");
+
+    // Write transaction record
+    console.log("Creating transaction record...");
+    const now = new Date();
+    const tid = 't' + now.getFullYear().toString().slice(-2) +
+      (now.getMonth() + 1).toString().padStart(2, '0') +
+      now.getDate().toString().padStart(2, '0') +
+      now.getHours().toString().padStart(2, '0') +
+      now.getMinutes().toString().padStart(2, '0') +
+      now.getSeconds().toString().padStart(2, '0');
+
+    const transactionResponse = await fetch(`https://api.notion.com/v1/pages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_API_SECRET}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        parent: { database_id: DATABASE_ID_TRANSFER },
+        properties: {
+          tid: {
+            title: [
+              {
+                text: {
+                  content: tid
+                }
+              }
+            ]
+          },
+          sender: {
+            rich_text: [
+              {
+                text: {
+                  content: sender.properties.username.rich_text[0].text.content
+                }
+              }
+            ]
+          },
+          receiver: {
+            rich_text: [
+              {
+                text: {
+                  content: recipientUsername
+                }
+              }
+            ]
+          },
+          amount: {
+            number: amount
+          },
+          senderNewBalance: {
+            number: senderNewBalance
+          },
+          receiverNewBalance: {
+            number: receiverNewBalance
+          }
+        }
+      })
+    });
+
+    if (!transactionResponse.ok) {
+      const errorText = await transactionResponse.text();
+      console.error("Error creating transaction record. Status:", transactionResponse.status);
+      console.error("Error details:", errorText);
+      throw new Error(`HTTP error! status: ${transactionResponse.status}, details: ${errorText}`);
+    }
+
+    const transactionData = await transactionResponse.json();
+    console.log("Transaction record created successfully:", transactionData);
 
     return { success: true };
   } catch (error) {
