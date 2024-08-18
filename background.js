@@ -358,7 +358,19 @@ async function loginUser(username, password) {
       }
 
       const allUsersData = await allUsersResponse.json();
-      const userRank = allUsersData.results.findIndex(user => user.id === userId) + 1;
+      let userRank = 1;
+      let prevBalance = null;
+
+      for (let i = 0; i < allUsersData.results.length; i++) {
+        const currentBalance = allUsersData.results[i].properties.balance.number;
+        if (prevBalance !== null && currentBalance < prevBalance) {
+          userRank = i + 1;
+        }
+        if (allUsersData.results[i].id === userId) {
+          break;
+        }
+        prevBalance = currentBalance;
+      }
 
       return {
         success: true,

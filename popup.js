@@ -44,8 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
         pageContentDiv.innerHTML = welcomeMessage;
         usernameInput.value = "";
         passwordInput.value = "";
-        showBalanceRanking(response.uid);
         nicknameForm.style.display = 'block';
+        showBalanceRanking(response.uid);
         currentUserUid = response.uid;
       } else {
         console.error(`Error logging in user:`, response.error);
