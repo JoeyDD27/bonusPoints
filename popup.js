@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const balanceRankingDiv = document.getElementById("balanceRanking");
   const loginForm = document.getElementById("loginForm");
   const registerForm = document.getElementById("registerForm");
+  const nicknameForm = document.getElementById("nicknameForm");
+  const newNicknameInput = document.getElementById("newNickname");
+  const changeNicknameButton = document.getElementById("changeNicknameButton");
 
   console.log("DOMContentLoaded event fired");
 
@@ -42,10 +45,14 @@ document.addEventListener("DOMContentLoaded", () => {
         usernameInput.value = "";
         passwordInput.value = "";
         showBalanceRanking(response.uid);
+        nicknameForm.style.display = 'block';
+        currentUserUid = response.uid;
       } else {
         console.error(`Error logging in user:`, response.error);
         pageContentDiv.textContent = response.error;
       }
+      enableButtons();
+      hideLoading();
     });
   }
 
@@ -168,6 +175,8 @@ document.addEventListener("DOMContentLoaded", () => {
           usernameInput.value = "";
           passwordInput.value = "";
           showBalanceRanking(response.uid);
+          nicknameForm.style.display = 'block';
+          currentUserUid = response.uid;
         } else {
           console.error(`Error logging in user:`, response.error);
           pageContentDiv.textContent = response.error;
@@ -272,4 +281,36 @@ document.addEventListener("DOMContentLoaded", () => {
     hideElement(loginForm);
     showElement(registerForm);
   }
+
+  changeNicknameButton.addEventListener("click", () => {
+    const newNickname = newNicknameInput.value;
+    if (validateInput(newNickname, 20)) {
+      disableButtons();
+      showLoading();
+      chrome.runtime.sendMessage({ action: "changeNickname", uid: currentUserUid, newNickname: newNickname }, response => {
+        if (response.success) {
+          const welcomeMessageElement = document.querySelector("#welcomeMessage h2");
+          if (welcomeMessageElement) {
+            welcomeMessageElement.textContent = `Welcome, ${newNickname}!`;
+          } else {
+            const welcomeMessage = `
+              <div id="welcomeMessage">
+                <h2>Welcome, ${newNickname}!</h2>
+              </div>
+            `;
+            pageContentDiv.innerHTML = welcomeMessage + pageContentDiv.innerHTML;
+          }
+          newNicknameInput.value = "";
+          pageContentDiv.insertAdjacentHTML('beforeend', "<p>Nickname changed successfully!</p>");
+          showBalanceRanking(currentUserUid); // Refresh the balance ranking
+        } else {
+          pageContentDiv.textContent = `Error changing nickname: ${response.error}`;
+        }
+        enableButtons();
+        hideLoading();
+      });
+    } else {
+      pageContentDiv.textContent = "Nickname must be between 3 and 20 characters long";
+    }
+  });
 });

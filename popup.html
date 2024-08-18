@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Notion User Registration/Login</title>
   <script type="text/javascript" src="popup.js"></script>
@@ -11,6 +12,7 @@
       background-color: #FFD700;
       color: #333;
     }
+
     h1 {
       color: #FF6347;
       text-align: center;
@@ -18,7 +20,9 @@
       font-size: 28px;
       text-shadow: 2px 2px 0px #FFA500;
     }
-    input[type="text"], input[type="password"] {
+
+    input[type="text"],
+    input[type="password"] {
       width: calc(100% - 26px);
       padding: 10px;
       margin-bottom: 10px;
@@ -27,6 +31,7 @@
       font-size: 16px;
       background-color: #FFFACD;
     }
+
     button {
       width: 100%;
       padding: 10px;
@@ -40,38 +45,45 @@
       margin-bottom: 10px;
       box-shadow: 0 4px 0 #45a049;
     }
+
     button:hover {
       background-color: #45a049;
       transform: translateY(2px);
       box-shadow: 0 2px 0 #45a049;
     }
+
     button:disabled {
       background-color: #cccccc;
       color: #666666;
       cursor: not-allowed;
       box-shadow: none;
     }
+
     #pageContent {
       margin-top: 20px;
       text-align: center;
       font-size: 18px;
     }
+
     #balanceRanking {
       margin-top: 10px;
       background-color: #FFFACD;
       border-radius: 15px;
       padding: 15px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
+
     #balanceRanking h2 {
       color: #FF6347;
       font-size: 22px;
       margin-top: 0;
       margin-bottom: 10px;
     }
+
     #welcomeMessage {
       margin-bottom: 10px;
     }
+
     #loadingIndicator {
       position: fixed;
       top: 0;
@@ -86,6 +98,7 @@
       font-size: 24px;
       z-index: 1000;
     }
+
     #header {
       background-color: #FF6347;
       color: white;
@@ -94,26 +107,45 @@
       border-radius: 15px 15px 0 0;
       margin: -20px -20px 20px -20px;
     }
+
     #header h1 {
       margin: 0;
       font-size: 32px;
       color: white;
       text-shadow: 2px 2px 0px #D2691E;
     }
+
     #version {
       font-size: 14px;
       opacity: 0.8;
     }
+
     @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-      40% {transform: translateY(-20px);}
-      60% {transform: translateY(-10px);}
+
+      0%,
+      20%,
+      50%,
+      80%,
+      100% {
+        transform: translateY(0);
+      }
+
+      40% {
+        transform: translateY(-20px);
+      }
+
+      60% {
+        transform: translateY(-10px);
+      }
     }
-    #loginForm, #registerForm {
+
+    #loginForm,
+    #registerForm {
       animation: bounce 1s;
     }
   </style>
 </head>
+
 <body>
   <div id="header">
     <h1>BonusPoints</h1>
@@ -139,5 +171,10 @@
   </div>
   <div id="pageContent"></div>
   <div id="balanceRanking"></div>
+  <div id="nicknameForm" style="display: none;">
+    <input type="text" id="newNickname" placeholder="Enter new nickname">
+    <button id="changeNicknameButton">Change Nickname</button>
+  </div>
 </body>
+
 </html>

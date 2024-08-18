@@ -49,6 +49,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then(result => sendResponse({ success: true, ...result }))
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
+  } else if (request.action === "changeNickname") {
+    changeNickname(request.uid, request.newNickname)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true;
   }
 });
 
@@ -415,6 +420,69 @@ async function getAllUsersBalances(currentUsername) {
   } catch (error) {
     console.error("Error fetching user balances:", error);
     throw error;
+  }
+}
+
+async function changeNickname(uid, newNickname) {
+  try {
+    const response = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_BASE}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_API_SECRET}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        filter: {
+          property: 'uid',
+          title: {
+            equals: uid
+          }
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    if (data.results.length > 0) {
+      const userId = data.results[0].id;
+
+      const updateResponse = await fetch(`https://api.notion.com/v1/pages/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${NOTION_API_SECRET}`,
+          'Notion-Version': '2022-06-28',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          properties: {
+            nickname: {
+              rich_text: [
+                {
+                  text: {
+                    content: newNickname
+                  }
+                }
+              ]
+            }
+          }
+        })
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error(`HTTP error! status: ${updateResponse.status}`);
+      }
+
+      return { success: true };
+    } else {
+      return { success: false, error: "User not found" };
+    }
+  } catch (error) {
+    console.error("Error changing nickname:", error);
+    return { success: false, error: error.message };
   }
 }
 
