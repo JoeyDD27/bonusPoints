@@ -684,7 +684,7 @@ async function transferPoints(senderUid, recipientUsername, amount) {
     const transactionData = await transactionResponse.json();
     console.log("Transaction record created successfully:", transactionData);
 
-    return { success: true };
+    return { success: true, newBalance: senderNewBalance };
   } catch (error) {
     console.error("Error transferring points:", error);
     return { success: false, error: error.message };

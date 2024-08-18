@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
         transferForm.style.display = 'block';
         showBalanceRanking(response.uid);
         currentUserUid = response.uid;
+        currentUserNickname = response.nickname; // Set the current user's nickname
       } else {
         console.error(`Error logging in user:`, response.error);
         pageContentDiv.textContent = response.error;
@@ -183,6 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
           nicknameForm.style.display = 'block';
           transferForm.style.display = 'block';
           currentUserUid = response.uid;
+          currentUserNickname = response.nickname; // Set the current user's nickname
         } else {
           console.error(`Error logging in user:`, response.error);
           pageContentDiv.textContent = response.error;
@@ -288,6 +290,16 @@ document.addEventListener("DOMContentLoaded", () => {
     showElement(registerForm);
   }
 
+  function updateWelcomeMessage(newBalance, newRank) {
+    const welcomeMessageElement = document.querySelector("#welcomeMessage");
+    if (welcomeMessageElement) {
+      welcomeMessageElement.innerHTML = `
+        <h2>Welcome, ${currentUserNickname}!</h2>
+        <p>Your balance: ${newBalance} | Rank: ${newRank}</p>
+      `;
+    }
+  }
+
   changeNicknameButton.addEventListener("click", () => {
     const newNickname = newNicknameInput.value;
     if (validateInput(newNickname, 20)) {
@@ -334,10 +346,20 @@ document.addEventListener("DOMContentLoaded", () => {
         amount: amount
       }, response => {
         if (response.success) {
+          const newBalance = response.newBalance;
           pageContentDiv.innerHTML += `<p>Successfully transferred ${amount} points to ${recipientUsername}.</p>`;
+          pageContentDiv.innerHTML += `<p>Your new balance: ${newBalance}</p>`;
           transferUsernameInput.value = "";
           transferAmountInput.value = "";
-          showBalanceRanking(currentUserUid);
+
+          // Update welcome message and balance ranking
+          chrome.runtime.sendMessage({ action: "getAllUsersBalances", username: currentUserUid }, rankResponse => {
+            if (rankResponse.success) {
+              const userRank = rankResponse.balances.findIndex(user => user.uid === currentUserUid) + 1;
+              updateWelcomeMessage(newBalance, userRank);
+              showBalanceRanking(currentUserUid);
+            }
+          });
         } else {
           pageContentDiv.innerHTML += `<p>Error transferring points: ${response.error}</p>`;
         }
