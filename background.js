@@ -54,6 +54,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then(result => sendResponse(result))
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
+  } else if (request.action === "transferPoints") {
+    transferPoints(request.senderUid, request.recipientUsername, request.amount)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ success: false, error: error.message }));
+    return true;
   }
 });
 
@@ -494,6 +499,112 @@ async function changeNickname(uid, newNickname) {
     }
   } catch (error) {
     console.error("Error changing nickname:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+async function transferPoints(senderUid, recipientUsername, amount) {
+  try {
+    // Get sender's information
+    const senderResponse = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_BASE}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_API_SECRET}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        filter: {
+          property: 'uid',
+          title: {
+            equals: senderUid
+          }
+        }
+      })
+    });
+
+    if (!senderResponse.ok) {
+      throw new Error(`HTTP error! status: ${senderResponse.status}`);
+    }
+
+    const senderData = await senderResponse.json();
+    if (senderData.results.length === 0) {
+      return { success: false, error: "Sender not found" };
+    }
+
+    const sender = senderData.results[0];
+    const senderBalance = sender.properties.balance.number;
+
+    if (senderBalance < amount) {
+      return { success: false, error: "Insufficient balance" };
+    }
+
+    // Get recipient's information
+    const recipientResponse = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_BASE}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_API_SECRET}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        filter: {
+          property: 'username',
+          rich_text: {
+            equals: recipientUsername
+          }
+        }
+      })
+    });
+
+    if (!recipientResponse.ok) {
+      throw new Error(`HTTP error! status: ${recipientResponse.status}`);
+    }
+
+    const recipientData = await recipientResponse.json();
+    if (recipientData.results.length === 0) {
+      return { success: false, error: "Recipient not found" };
+    }
+
+    const recipient = recipientData.results[0];
+
+    // Update sender's balance
+    await fetch(`https://api.notion.com/v1/pages/${sender.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${NOTION_API_SECRET}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        properties: {
+          balance: {
+            number: senderBalance - amount
+          }
+        }
+      })
+    });
+
+    // Update recipient's balance
+    await fetch(`https://api.notion.com/v1/pages/${recipient.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${NOTION_API_SECRET}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        properties: {
+          balance: {
+            number: recipient.properties.balance.number + amount
+          }
+        }
+      })
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error transferring points:", error);
     return { success: false, error: error.message };
   }
 }

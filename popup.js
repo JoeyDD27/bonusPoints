@@ -17,6 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const nicknameForm = document.getElementById("nicknameForm");
   const newNicknameInput = document.getElementById("newNickname");
   const changeNicknameButton = document.getElementById("changeNicknameButton");
+  const transferForm = document.getElementById("transferForm");
+  const transferUsernameInput = document.getElementById("transferUsername");
+  const transferAmountInput = document.getElementById("transferAmount");
+  const transferButton = document.getElementById("transferButton");
 
   console.log("DOMContentLoaded event fired");
 
@@ -45,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
         usernameInput.value = "";
         passwordInput.value = "";
         nicknameForm.style.display = 'block';
+        transferForm.style.display = 'block';
         showBalanceRanking(response.uid);
         currentUserUid = response.uid;
       } else {
@@ -176,6 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
           passwordInput.value = "";
           showBalanceRanking(response.uid);
           nicknameForm.style.display = 'block';
+          transferForm.style.display = 'block';
           currentUserUid = response.uid;
         } else {
           console.error(`Error logging in user:`, response.error);
@@ -311,6 +317,35 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     } else {
       pageContentDiv.textContent = "Nickname must be between 3 and 20 characters long";
+    }
+  });
+
+  transferButton.addEventListener("click", () => {
+    const recipientUsername = transferUsernameInput.value;
+    const amount = parseInt(transferAmountInput.value, 10);
+
+    if (recipientUsername && !isNaN(amount) && amount > 0) {
+      disableButtons();
+      showLoading();
+      chrome.runtime.sendMessage({
+        action: "transferPoints",
+        senderUid: currentUserUid,
+        recipientUsername: recipientUsername,
+        amount: amount
+      }, response => {
+        if (response.success) {
+          pageContentDiv.innerHTML += `<p>Successfully transferred ${amount} points to ${recipientUsername}.</p>`;
+          transferUsernameInput.value = "";
+          transferAmountInput.value = "";
+          showBalanceRanking(currentUserUid);
+        } else {
+          pageContentDiv.innerHTML += `<p>Error transferring points: ${response.error}</p>`;
+        }
+        enableButtons();
+        hideLoading();
+      });
+    } else {
+      pageContentDiv.innerHTML += "<p>Please enter a valid recipient username and amount.</p>";
     }
   });
 });
