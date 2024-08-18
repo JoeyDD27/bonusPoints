@@ -83,7 +83,8 @@ document.addEventListener("DOMContentLoaded", () => {
   backToLoginButton.addEventListener("click", animateLoginForm);
 
   function validateInput(input, maxLength) {
-    return input.length >= 3 && input.length <= maxLength;
+    const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+    return input.length >= 3 && input.length <= maxLength && alphanumericRegex.test(input);
   }
 
   registerButton.addEventListener("click", () => {
@@ -146,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     } else {
-      pageContentDiv.textContent = "Username and password must be between 3 and 20 characters long, and activation code is required";
+      pageContentDiv.textContent = "Username and password must be between 3 and 20 characters long, and contain only letters and numbers. Activation code is required.";
     }
   });
 
@@ -185,7 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
         hideLoading();
       });
     } else {
-      pageContentDiv.textContent = "Username and password must be between 3 and 20 characters long";
+      pageContentDiv.textContent = "Username and password must be between 3 and 20 characters long, and contain only letters and numbers.";
     }
   });
 
