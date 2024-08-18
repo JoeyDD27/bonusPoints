@@ -1,17 +1,29 @@
 {
   "manifest_version": 3,
-  "name": "Notion Data Reader",
-  "version": "1.0",
-  "description": "Reads data from a Notion database",
+  "name": "BonusPoints",
+  "description": "BonusPoints is a Chrome extension that allows you to view and manage your BonusPoints account.",
+  "version": "0.9.0",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    },
+    "use_icon_masks": false
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "permissions": [
+    "activeTab",
     "storage"
   ],
   "host_permissions": [
-    "https://api.notion.com/"
+    "https://api.notion.com/*"
   ],
-  "action": {
-    "default_popup": "popup.html"
-  },
   "background": {
     "service_worker": "background.js",
     "type": "module"
