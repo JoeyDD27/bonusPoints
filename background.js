@@ -17,37 +17,37 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     checkUsernameExists(request.username)
       .then(exists => {
         if (exists) {
-          sendResponse({success: false, error: "Username already exists"});
+          sendResponse({ success: false, error: "Username already exists" });
         } else {
           return registerUser(request.username, request.password, request.activationCode);
         }
       })
       .then(registeredContent => {
         if (registeredContent) {
-          sendResponse({success: true, content: registeredContent});
+          sendResponse({ success: true, content: registeredContent });
         }
       })
-      .catch(error => sendResponse({success: false, error: error.message}));
+      .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
   } else if (request.action === "checkUsername") {
     checkUsernameExists(request.username)
       .then(exists => {
-        sendResponse({exists: exists});
+        sendResponse({ exists: exists });
       })
       .catch(error => {
         console.error("Error checking username:", error);
-        sendResponse({exists: false, error: error.message});
+        sendResponse({ exists: false, error: error.message });
       });
     return true;
   } else if (request.action === "loginUser") {
     loginUser(request.username, request.password)
       .then(result => sendResponse(result))
-      .catch(error => sendResponse({success: false, error: error.message}));
+      .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
   } else if (request.action === "getAllUsersBalances") {
     getAllUsersBalances(request.username)
-      .then(result => sendResponse({success: true, ...result}))
-      .catch(error => sendResponse({success: false, error: error.message}));
+      .then(result => sendResponse({ success: true, ...result }))
+      .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
   }
 });
@@ -288,11 +288,17 @@ async function loginUser(username, password) {
     if (data.results.length > 0) {
       const userInfo = data.results[0].properties;
       const userId = data.results[0].id;
+
+      // Check if the user is locked
+      if (userInfo.locked && userInfo.locked.checkbox) {
+        return { success: false, error: "Account is locked. Please contact support." };
+      }
+
       const lastCheckInDate = userInfo.lastCheckInDate.date ? new Date(userInfo.lastCheckInDate.date.start) : new Date(0);
-      const beijingNow = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Shanghai"}));
+      const beijingNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" }));
       const isSameDay = lastCheckInDate.getFullYear() === beijingNow.getFullYear() &&
-                        lastCheckInDate.getMonth() === beijingNow.getMonth() &&
-                        lastCheckInDate.getDate() === beijingNow.getDate();
+        lastCheckInDate.getMonth() === beijingNow.getMonth() &&
+        lastCheckInDate.getDate() === beijingNow.getDate();
       let checkedIn = false;
       if (!isSameDay) {
         // Update balance and lastCheckInDate

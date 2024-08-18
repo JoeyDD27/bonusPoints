@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
   showBalanceRanking();
 
   function loginUser(username, password) {
-    chrome.runtime.sendMessage({action: "loginUser", username: username, password: password}, response => {
+    chrome.runtime.sendMessage({ action: "loginUser", username: username, password: password }, response => {
       console.log("Response received:", response);
       if (response.success) {
         loginForm.style.display = 'none';
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showBalanceRanking(response.uid);
       } else {
         console.error(`Error logging in user:`, response.error);
-        pageContentDiv.textContent = `Error logging in user: ` + response.error;
+        pageContentDiv.textContent = response.error;
       }
     });
   }
@@ -84,32 +84,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = regPasswordInput.value;
     const confirmPassword = confirmPasswordInput.value;
     const activationCode = document.getElementById("activationCode").value;
-    
+
     if (validateInput(username, 20) && validateInput(password, 20) && activationCode) {
       if (password !== confirmPassword) {
         pageContentDiv.textContent = "Passwords do not match";
         return;
       }
-      
+
       // Disable buttons and show loading indicator
       disableButtons();
       showLoading();
 
-      chrome.runtime.sendMessage({action: "checkUsername", username: username}, response => {
+      chrome.runtime.sendMessage({ action: "checkUsername", username: username }, response => {
         if (response.exists) {
           pageContentDiv.textContent = "Username already exists";
           enableButtons();
           hideLoading();
         } else {
           chrome.runtime.sendMessage({
-            action: "checkActivationCode", 
+            action: "checkActivationCode",
             activationCode: activationCode
           }, activationResponse => {
             if (activationResponse.valid) {
               chrome.runtime.sendMessage({
-                action: "registerUser", 
-                username: username, 
-                password: password, 
+                action: "registerUser",
+                username: username,
+                password: password,
                 activationCode: activationCode
               }, response => {
                 console.log("Response received:", response);
@@ -147,13 +147,13 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Login button clicked");
     const username = usernameInput.value;
     const password = passwordInput.value;
-    
+
     if (validateInput(username, 20) && validateInput(password, 20)) {
       // Disable buttons and show loading indicator
       disableButtons();
       showLoading();
 
-      chrome.runtime.sendMessage({action: "loginUser", username: username, password: password}, response => {
+      chrome.runtime.sendMessage({ action: "loginUser", username: username, password: password }, response => {
         console.log("Response received:", response);
         if (response.success) {
           loginForm.style.display = 'none';
@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showBalanceRanking(response.uid);
         } else {
           console.error(`Error logging in user:`, response.error);
-          pageContentDiv.textContent = `Error logging in user: ` + response.error;
+          pageContentDiv.textContent = response.error;
         }
         enableButtons();
         hideLoading();
@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function showBalanceRanking(uid = null) {
-    chrome.runtime.sendMessage({action: "getAllUsersBalances", username: uid}, response => {
+    chrome.runtime.sendMessage({ action: "getAllUsersBalances", username: uid }, response => {
       if (response.success) {
         const balances = response.balances;
         balanceRankingDiv.innerHTML = "";
@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           const listItem = document.createElement("div");
           listItem.textContent = `${currentRank}. ${user.nickname}: ${user.balance}`;
-          
+
           if (uid && user.uid === uid) {
             listItem.style.fontWeight = 'bold';
           }
