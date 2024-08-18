@@ -1,15 +1,15 @@
 // background.js
 import { NOTION_API_SECRET } from './apikey.js';
-import { DATABASE_ID_BASE, DATABASE_ID_ACTIVATIONCODE, DATABASE_ID_TRANSFER } from './config.js';
+import { DATABASE_ID_BASE, DATABASE_ID_INVITATIONCODE, DATABASE_ID_TRANSFER } from './config.js';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "checkActivationCode") {
-    checkActivationCode(request.activationCode)
+  if (request.action === "checkInvitationCode") {
+    checkInvitationCode(request.invitationCode)
       .then(isValid => {
         sendResponse({ valid: isValid });
       })
       .catch(error => {
-        console.error("Error checking activation code:", error);
+        console.error("Error checking invitation code:", error);
         sendResponse({ valid: false, error: error.message });
       });
     return true;
@@ -19,7 +19,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (exists) {
           sendResponse({ success: false, error: "Username already exists" });
         } else {
-          return registerUser(request.username, request.password, request.activationCode);
+          return registerUser(request.username, request.password, request.invitationCode);
         }
       })
       .then(registeredContent => {
@@ -62,11 +62,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-async function registerUser(username, password, activationCode) {
+async function registerUser(username, password, invitationCode) {
   try {
-    const isValidCode = await checkActivationCode(activationCode);
+    const isValidCode = await checkInvitationCode(invitationCode);
     if (!isValidCode) {
-      throw new Error("Invalid or already used activation code");
+      throw new Error("Invalid or already used invitation code");
     }
 
     const response = await fetch(`https://api.notion.com/v1/pages`, {
@@ -118,8 +118,8 @@ async function registerUser(username, password, activationCode) {
           balance: {
             number: 100
           },
-          activationCode: {
-            number: parseInt(activationCode, 10)
+          invitationCode: {
+            number: parseInt(invitationCode, 10)
           },
           lastCheckInDate: {
             date: {
@@ -136,8 +136,8 @@ async function registerUser(username, password, activationCode) {
 
     const data = await response.json();
 
-    // Update activation code status
-    const activationCodePage = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_ACTIVATIONCODE}/query`, {
+    // Update invitation code status
+    const invitationCodePage = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_INVITATIONCODE}/query`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${NOTION_API_SECRET}`,
@@ -146,22 +146,22 @@ async function registerUser(username, password, activationCode) {
       },
       body: JSON.stringify({
         filter: {
-          property: "activationCode",
+          property: "invitationCode",
           number: {
-            equals: parseInt(activationCode, 10)
+            equals: parseInt(invitationCode, 10)
           }
         }
       })
     });
 
-    if (!activationCodePage.ok) {
-      throw new Error(`HTTP error! status: ${activationCodePage.status}`);
+    if (!invitationCodePage.ok) {
+      throw new Error(`HTTP error! status: ${invitationCodePage.status}`);
     }
 
-    const activationCodeData = await activationCodePage.json();
+    const invitationCodeData = await invitationCodePage.json();
 
-    if (activationCodeData.results.length > 0) {
-      const updateResponse = await fetch(`https://api.notion.com/v1/pages/${activationCodeData.results[0].id}`, {
+    if (invitationCodeData.results.length > 0) {
+      const updateResponse = await fetch(`https://api.notion.com/v1/pages/${invitationCodeData.results[0].id}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${NOTION_API_SECRET}`,
@@ -189,13 +189,13 @@ async function registerUser(username, password, activationCode) {
   }
 }
 
-async function checkActivationCode(activationCode) {
-  const numericActivationCode = parseInt(activationCode, 10);
-  if (isNaN(numericActivationCode)) {
-    throw new Error("Invalid activation code");
+async function checkInvitationCode(invitationCode) {
+  const numericInvitationCode = parseInt(invitationCode, 10);
+  if (isNaN(numericInvitationCode)) {
+    throw new Error("Invalid invitation code");
   }
 
-  const response = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_ACTIVATIONCODE}/query`, {
+  const response = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_INVITATIONCODE}/query`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${NOTION_API_SECRET}`,
@@ -206,9 +206,9 @@ async function checkActivationCode(activationCode) {
       filter: {
         and: [
           {
-            property: "activationCode",
+            property: "invitationCode",
             number: {
-              equals: numericActivationCode
+              equals: numericInvitationCode
             }
           },
           {
@@ -691,6 +691,6 @@ async function transferPoints(senderUid, recipientUsername, amount) {
   }
 }
 
-function getActivationCode() {
-  return ACTIVATION_CODE;
+function getInvitationCode() {
+  return INVITATION_CODE;
 }

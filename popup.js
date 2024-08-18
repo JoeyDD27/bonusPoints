@@ -96,9 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const username = regUsernameInput.value;
     const password = regPasswordInput.value;
     const confirmPassword = confirmPasswordInput.value;
-    const activationCode = document.getElementById("activationCode").value;
+    const invitationCode = document.getElementById("invitationCode").value;
 
-    if (validateInput(username, 20) && validateInput(password, 20) && activationCode) {
+    if (validateInput(username, 20) && validateInput(password, 20) && invitationCode) {
       if (password !== confirmPassword) {
         pageContentDiv.textContent = "Passwords do not match";
         return;
@@ -115,15 +115,15 @@ document.addEventListener("DOMContentLoaded", () => {
           hideLoading();
         } else {
           chrome.runtime.sendMessage({
-            action: "checkActivationCode",
-            activationCode: activationCode
-          }, activationResponse => {
-            if (activationResponse.valid) {
+            action: "checkInvitationCode",
+            invitationCode: invitationCode
+          }, invitationResponse => {
+            if (invitationResponse.valid) {
               chrome.runtime.sendMessage({
                 action: "registerUser",
                 username: username,
                 password: password,
-                activationCode: activationCode
+                invitationCode: invitationCode
               }, response => {
                 console.log("Response received:", response);
                 if (response.success) {
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   regUsernameInput.value = "";
                   regPasswordInput.value = "";
                   confirmPasswordInput.value = "";
-                  document.getElementById("activationCode").value = "";
+                  document.getElementById("invitationCode").value = "";
                   animateLoginForm(); // Switch to login form
                 } else {
                   console.error(`Error registering user:`, response.error);
@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 hideLoading();
               });
             } else {
-              pageContentDiv.textContent = "Invalid or already used activation code";
+              pageContentDiv.textContent = "Invalid or already used invitation code";
               enableButtons();
               hideLoading();
             }
@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     } else {
-      pageContentDiv.textContent = "Username and password must be between 3 and 20 characters long, and contain only letters and numbers. Activation code is required.";
+      pageContentDiv.textContent = "Username and password must be between 3 and 20 characters long, and contain only letters and numbers. Invitation code is required.";
     }
   });
 
