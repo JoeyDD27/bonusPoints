@@ -1,0 +1,3 @@
+export const DATABASE_ID_BASE = 'ec7c4890730248ff8181b40c95c661d1';
+export const DATABASE_ID_ACTIVATIONCODE = 'da350cc96e3046eb9744e75961d610f4';
+//export const DATABASE_ID_BASE = 'b668cce2f61e4357abc0fee875b4f104';//test
