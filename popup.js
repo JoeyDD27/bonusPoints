@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div id="welcomeMessage">
             <h2>Welcome, ${response.nickname}!</h2>
             <p>Your balance: ${response.balance} | Rank: ${response.rank}</p>
-            ${response.checkedIn ? `<p>You've checked in today! +$1 added to your balance.</p>` : ''}
+            ${response.checkedIn ? `<p>You've checked in today! +1 added to your balance.</p>` : ''}
           </div>
         `;
         pageContentDiv.innerHTML = welcomeMessage;
@@ -129,8 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   regPasswordInput.value = "";
                   confirmPasswordInput.value = "";
                   document.getElementById("activationCode").value = "";
-                  registerForm.style.display = "none";
-                  loginForm.style.display = "block";
+                  animateLoginForm(); // Switch to login form
                 } else {
                   console.error(`Error registering user:`, response.error);
                   pageContentDiv.textContent = `Error registering user: ` + response.error;
@@ -169,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div id="welcomeMessage">
               <h2>Welcome, ${response.nickname}!</h2>
               <p>Your balance: ${response.balance} | Rank: ${response.rank}</p>
-              ${response.checkedIn ? `<p>You've checked in today! +$1 added to your balance.</p>` : ''}
+              ${response.checkedIn ? `<p>You've checked in today! +1 added to your balance.</p>` : ''}
             </div>
           `;
           pageContentDiv.innerHTML = welcomeMessage;
@@ -211,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
 
           const listItem = document.createElement("div");
-          listItem.textContent = `${currentRank}. ${user.nickname}: ${user.balance}`;
+          listItem.textContent = `${currentRank}.${user.nickname}: ${user.balance}`;
 
           if (uid && user.uid === uid) {
             listItem.style.fontWeight = 'bold';
