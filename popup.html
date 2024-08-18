@@ -32,6 +32,16 @@
       background-color: #FFFACD;
     }
 
+    input[type="number"] {
+      width: calc(100% - 26px);
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 3px solid #4CAF50;
+      border-radius: 15px;
+      font-size: 16px;
+      background-color: #FFFACD;
+    }
+
     button {
       width: 100%;
       padding: 10px;
@@ -150,6 +160,35 @@
     #registerForm {
       animation: bounce 1s;
     }
+
+    .section {
+      background-color: #FFFACD;
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .section h2 {
+      color: #FF6347;
+      font-size: 20px;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .input-button-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-button-row input {
+      flex-grow: 1;
+    }
+
+    .input-button-row button {
+      width: auto;
+      white-space: nowrap;
+    }
   </style>
 </head>
 
@@ -177,14 +216,18 @@
     <button id="backToLoginButton">Back to Login</button>
   </div>
   <div id="pageContent"></div>
-  <div id="nicknameForm" style="display: none;">
-    <input type="text" id="newNickname" placeholder="Enter new nickname">
-    <button id="changeNicknameButton">Change Nickname</button>
-  </div>
-  <div id="transferForm" style="display: none;">
+  <div id="transferForm" class="section" style="display: none;">
+    <h2>Transfer Points (by username)</h2>
     <input type="text" id="transferUsername" placeholder="Enter recipient's username">
     <input type="number" id="transferAmount" placeholder="Enter amount to transfer">
     <button id="transferButton">Transfer Points</button>
+  </div>
+  <div id="nicknameForm" class="section" style="display: none;">
+    <h2>Change Nickname</h2>
+    <div class="input-button-row">
+      <input type="text" id="newNickname" placeholder="Enter new nickname">
+      <button id="changeNicknameButton">Change</button>
+    </div>
   </div>
   <div id="balanceRanking"></div>
 </body>

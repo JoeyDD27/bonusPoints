@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
         balanceRankingDiv.innerHTML = "";
 
         const rankingTitle = document.createElement("h2");
-        rankingTitle.textContent = "Balance Ranking";
+        rankingTitle.textContent = "Balance Ranking (nickname)";
         balanceRankingDiv.appendChild(rankingTitle);
 
         const rankingList = document.createElement("div");
