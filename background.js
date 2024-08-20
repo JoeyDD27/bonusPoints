@@ -59,6 +59,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then(result => sendResponse(result))
       .catch(error => sendResponse({ success: false, error: error.message }));
     return true;
+  } else if (request.action === "getCurrentUsername") {
+    getCurrentUsername(request.uid)
+      .then(username => sendResponse({ username: username }))
+      .catch(error => sendResponse({ error: error.message }));
+    return true;
   }
 });
 
@@ -534,6 +539,13 @@ async function transferPoints(senderUid, recipientUsername, amount) {
     }
 
     const sender = senderData.results[0];
+    const senderUsername = sender.properties.username.rich_text[0].text.content;
+
+    // Check if sender is trying to transfer to themselves
+    if (senderUsername === recipientUsername) {
+      return { success: false, error: "You cannot transfer points to yourself" };
+    }
+
     const senderBalance = sender.properties.balance.number;
 
     if (senderBalance < amount) {
@@ -684,11 +696,68 @@ async function transferPoints(senderUid, recipientUsername, amount) {
     const transactionData = await transactionResponse.json();
     console.log("Transaction record created successfully:", transactionData);
 
-    return { success: true, newBalance: senderNewBalance };
+    // Calculate new rank for sender
+    const allUsersResponse = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_BASE}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_API_SECRET}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        sorts: [
+          {
+            property: 'balance',
+            direction: 'descending'
+          }
+        ]
+      })
+    });
+
+    const allUsersData = await allUsersResponse.json();
+    let newRank = 1;
+    for (const user of allUsersData.results) {
+      if (user.id === sender.id) {
+        break;
+      }
+      newRank++;
+    }
+
+    return { success: true, newBalance: senderNewBalance, newRank: newRank };
   } catch (error) {
     console.error("Error transferring points:", error);
     return { success: false, error: error.message };
   }
+}
+
+async function getCurrentUsername(uid) {
+  const response = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID_BASE}/query`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${NOTION_API_SECRET}`,
+      'Notion-Version': '2022-06-28',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      filter: {
+        property: 'uid',
+        title: {
+          equals: uid
+        }
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (data.results.length === 0) {
+    throw new Error("User not found");
+  }
+
+  return data.results[0].properties.username.rich_text[0].text.content;
 }
 
 function getInvitationCode() {

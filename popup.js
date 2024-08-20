@@ -337,34 +337,42 @@ document.addEventListener("DOMContentLoaded", () => {
     const amount = parseInt(transferAmountInput.value, 10);
 
     if (recipientUsername && !isNaN(amount) && amount > 0) {
-      disableButtons();
-      showLoading();
-      chrome.runtime.sendMessage({
-        action: "transferPoints",
-        senderUid: currentUserUid,
-        recipientUsername: recipientUsername,
-        amount: amount
-      }, response => {
-        if (response.success) {
-          const newBalance = response.newBalance;
-          pageContentDiv.innerHTML += `<p>Successfully transferred ${amount} points to ${recipientUsername}.</p>`;
-          pageContentDiv.innerHTML += `<p>Your new balance: ${newBalance}</p>`;
-          transferUsernameInput.value = "";
-          transferAmountInput.value = "";
-
-          // Update welcome message and balance ranking
-          chrome.runtime.sendMessage({ action: "getAllUsersBalances", username: currentUserUid }, rankResponse => {
-            if (rankResponse.success) {
-              const userRank = rankResponse.balances.findIndex(user => user.uid === currentUserUid) + 1;
-              updateWelcomeMessage(newBalance, userRank);
-              showBalanceRanking(currentUserUid);
-            }
-          });
-        } else {
-          pageContentDiv.innerHTML += `<p>Error transferring points: ${response.error}</p>`;
+      // Check if the user is trying to transfer to themselves
+      chrome.runtime.sendMessage({ action: "getCurrentUsername" }, response => {
+        if (response.username === recipientUsername) {
+          pageContentDiv.innerHTML += "<p>Error: You cannot transfer points to yourself.</p>";
+          return;
         }
-        enableButtons();
-        hideLoading();
+
+        disableButtons();
+        showLoading();
+        chrome.runtime.sendMessage({
+          action: "transferPoints",
+          senderUid: currentUserUid,
+          recipientUsername: recipientUsername,
+          amount: amount
+        }, response => {
+          if (response.success) {
+            const newBalance = response.newBalance;
+            pageContentDiv.innerHTML += `<p>Successfully transferred ${amount} points to ${recipientUsername}.</p>`;
+            pageContentDiv.innerHTML += `<p>Your new balance: ${newBalance}</p>`;
+            transferUsernameInput.value = "";
+            transferAmountInput.value = "";
+
+            // Update welcome message and balance ranking
+            chrome.runtime.sendMessage({ action: "getAllUsersBalances", username: currentUserUid }, rankResponse => {
+              if (rankResponse.success) {
+                const userRank = rankResponse.balances.findIndex(user => user.uid === currentUserUid) + 1;
+                updateWelcomeMessage(newBalance, userRank);
+                showBalanceRanking(currentUserUid);
+              }
+            });
+          } else {
+            pageContentDiv.innerHTML += `<p>Error transferring points: ${response.error}</p>`;
+          }
+          enableButtons();
+          hideLoading();
+        });
       });
     } else {
       pageContentDiv.innerHTML += "<p>Please enter a valid recipient username and amount.</p>";
